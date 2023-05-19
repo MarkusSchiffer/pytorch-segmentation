@@ -23,7 +23,7 @@ def main(config, path, device):
 
     image_size = config["train_loader"]["args"]["base_size"]
 
-    dummy = torch.randn(1, image_size, image_size).to(device)
+    dummy = torch.randn(1, 3, image_size, image_size).to(device)
     file_name = os.path.splitext(path)[0] + ".onnx"
     torch.onnx.export(model,
                       dummy,
