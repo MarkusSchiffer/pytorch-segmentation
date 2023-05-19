@@ -110,3 +110,11 @@ class DeepScene(BaseDataLoader):
 
 		self.dataset = DeepSceneDataset(**kwargs)
 		super().__init__(self.dataset, batch_size, shuffle, num_workers, val_split)
+
+def create_indexed_targets_dir(root_dir):
+	palette = palette.DeepScene_palette
+
+	mask_mapping = {}
+
+	for i in range(0, len(palette), 3):
+		mask_mapping[tuple(palette[i:i+3])] = i // 3
