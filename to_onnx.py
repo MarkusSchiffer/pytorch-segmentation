@@ -4,18 +4,20 @@ import json
 import models
 import os
 import torch
-import train
+from train import get_instance
 
 
 def main(config, path, device):
     if not os.path.exists(path):
         raise ValueError(f"File does not exist for ONNX conversion: {path}")
 
-    train_loader = train.get_instance(dataloaders, 'train_loader', config)
-    model = train.get_instance(models,
-                               'arch',
-                               config,
-                               train_loader.dataset.num_classes)
+    train_loader = get_instance(dataloaders, 'train_loader', config)
+
+    model = get_instance(models,
+                         'arch',
+                         config,
+                         train_loader.dataset.num_classes)
+    model.to(device)
     model.load_state_dict(torch.load(path))
     model.eval()
 
