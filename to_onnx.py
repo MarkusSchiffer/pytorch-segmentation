@@ -24,7 +24,7 @@ if __name__=='__main__':
                         help='Path to the PyTorch (.pth) file of the model to convert')
     parser.add_argument('-r', '--resolution', default=128, type=int,
                         help='size of one side of the input image, in pixes (default: 128)')
-    parser.add_argument('-d', '--device', default=None, type=str,
+    parser.add_argument('-d', '--device', default="cpu", type=str,
                            help='indices of GPUs to enable (default: all)')
     args = parser.parse_args()
 
