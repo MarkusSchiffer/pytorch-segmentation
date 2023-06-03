@@ -15,7 +15,7 @@ from utils import palette
 config = json.load(open("config.json"))
 IMAGE_PATH = "/root/catkin_ws/src/pytorch-segmentation/images/crop_test.png"
 ONNX_MODEL = "/root/catkin_ws/src/best_model.onnx"
-NUM_ITERATIONS = 100
+NUM_ITERATIONS = 500
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 
@@ -79,7 +79,7 @@ for i in range(NUM_ITERATIONS):
     t0 = time.time()
     ort_session.run_with_iobinding(io_binding)
     latency.append(time.time() - t0)
-    ort_outs = io_binding.copy_outputs_to_cpu()
+    # ort_outs = io_binding.copy_outputs_to_cpu()
 print('Number of runs:', len(latency))
 print("Average onnxruntime {} Inference time = {} ms".format(device.type, format(sum(latency) * 1000 / len(latency), '.2f')))
 
@@ -138,13 +138,20 @@ model.eval()
 
 img_tensor = torch.from_numpy(img).to(torch.device("cuda:0"))
 
+print("torch")
+
+latency = []
+
 start = time.time()
 for i in range(NUM_ITERATIONS):
-    if i % 10 == 0:
-        print(f"torch iteration: {i}")
-    prediction_pytorch = model(img_tensor)
-duration = time.time() - start
-print(f"fps: {NUM_ITERATIONS/duration}")
+    t0 = time.time()
+    # if i % 10 == 0:
+    #     print(f"torch iteration: {i}")
+    # prediction_pytorch = model(img_tensor)
+    model(img_tensor)
+    latency.append(time.time() - t0)
+print('Number of runs:', len(latency))
+print("Average torch {} Inference time = {} ms".format(device.type, format(sum(latency) * 1000 / len(latency), '.2f')))
 # prediction_pytorch = prediction_pytorch.squeeze(0)
 # prediction_pytorch = F.softmax(prediction_pytorch, dim=0).argmax(0).cpu().numpy()
 
