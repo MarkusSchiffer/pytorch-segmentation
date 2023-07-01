@@ -2,7 +2,6 @@ from collections import OrderedDict
 import time
 import json
 import models
-import numpy as np
 import onnxruntime
 from PIL import Image
 import torchvision.transforms as transforms
@@ -42,10 +41,6 @@ pip3 install tensorboard
 """
 
 providers = [("CUDAExecutionProvider", {"cudnn_conv_use_max_workspace": '1'})]
-# sess_options = onnxruntime.SessionOptions()
-# sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
-# sess_options.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL
-# ort_session = onnxruntime.InferenceSession(ONNX_MODEL, sess_options=sess_options, providers=providers)
 
 onnx_model = onnx.load(ONNX_MODEL)
 onnx.checker.check_model(onnx_model)
@@ -79,42 +74,11 @@ for i in range(NUM_ITERATIONS):
     t0 = time.time()
     ort_session.run_with_iobinding(io_binding)
     latency.append(time.time() - t0)
-    # ort_outs = io_binding.copy_outputs_to_cpu()
 print('Number of runs:', len(latency))
 print("Average onnxruntime {} Inference time = {} ms".format(device.type, format(sum(latency) * 1000 / len(latency), '.2f')))
 
-
-# ort_session = onnxruntime.InferenceSession(ONNX_MODEL, providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
-
-# # compute ONNX Runtime output prediction
-# ort_inputs = {ort_session.get_inputs()[0].name: img}
-# # run the first one, takes realllllly long
-# ort_session.run(None, ort_inputs)
-# print("ONNX starting")
-# start = time.time()
-# for i in range(NUM_ITERATIONS):
-#     if i % 10 == 0:
-#         print(f"onnx iteration: {i}")
-#     ort_outs = ort_session.run(None, ort_inputs)
-# duration = time.time() - start
-
-# print(f"fps: {NUM_ITERATIONS/duration}")
-
-# prediction = ort_outs[0]
-# prediction = prediction.squeeze(0)
-# prediction = F.softmax(torch.from_numpy(prediction), dim=0).argmax(0).cpu().numpy()
-
-# colorized_mask = colorize_mask(prediction, palette.DeepScene_palette)
-# colorized_mask.save("/home/markus/Pictures/test.png")
-
-
-################################################################################################
-# Used to create the dummy input
-# loader = getattr(dataloaders, config['train_loader']['type'])(**config['train_loader']['args'])
-# num_classes = loader.dataset.num_classes
-num_classes = 7
-
 # Model
+num_classes = 7
 model = getattr(models, config['arch']['type'])(num_classes, **config['arch']['args'])
 availble_gpus = list(range(torch.cuda.device_count()))
 device = torch.device('cuda:0' if len(availble_gpus) > 0 else 'cpu')
@@ -145,17 +109,7 @@ latency = []
 start = time.time()
 for i in range(NUM_ITERATIONS):
     t0 = time.time()
-    # if i % 10 == 0:
-    #     print(f"torch iteration: {i}")
-    # prediction_pytorch = model(img_tensor)
     model(img_tensor)
     latency.append(time.time() - t0)
 print('Number of runs:', len(latency))
 print("Average torch {} Inference time = {} ms".format(device.type, format(sum(latency) * 1000 / len(latency), '.2f')))
-# prediction_pytorch = prediction_pytorch.squeeze(0)
-# prediction_pytorch = F.softmax(prediction_pytorch, dim=0).argmax(0).cpu().numpy()
-
-# colorized_mask = colorize_mask(prediction_pytorch, palette.DeepScene_palette)
-# colorized_mask.save("/home/markus/Pictures/test_torch.png")
-
-# np.testing.assert_allclose(prediction_pytorch, prediction, rtol=1e-03, atol=1e-05)
